@@ -49,7 +49,7 @@ exports.generateBusinessCard = async (details) => {
 
  // Simplified location text handling
  const locationText = `Location: ${details.Location}`;
- const maxLength = 60; // Maximum number of characters per line
+ const maxLength = 55; // Maximum number of characters per line
  let locationY = 410;
  
  for (let i = 0; i < locationText.length; i += maxLength) {
