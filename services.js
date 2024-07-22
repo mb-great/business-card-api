@@ -46,14 +46,22 @@ exports.generateBusinessCard = async (details) => {
   drawText(ctx, `Phone: ${details.PhoneNo}`, 50, 260, 30);
   drawText(ctx, `Website: ${details.WebsiteURL}`, 50, 310, 30);
   drawText(ctx, `Category: ${details.Category}`, 50, 360, 30);
-  drawText(ctx, `Location: ${details.Location}`, 50, 410, 30);
+
+  const locationText = `Location: ${details.Location}`;
+  const locationMaxWidth = width - 100; // Adjust as needed
+  const locationLines = wrapText(ctx, locationText, locationMaxWidth);
+  let locationY = 410;
+  locationLines.forEach(line => {
+    drawText(ctx, line, 50, locationY, 30);
+    locationY += 40; // Adjust line height as needed
+  });
 
   const qrCode = generateQRCode(details.WebsiteURL);
   const qrImage = await loadImage(qrCode);
   ctx.drawImage(qrImage, width - 250, height - 250, 200, 200);
 
-  drawText(ctx, 'Powered by YourCompany', 50, height - 50, 30, 'grey');
-  addWatermarks(ctx, 'Your Watermark', width, height);
+  drawText(ctx, 'Powered by Pintude', 50, height - 50, 30, 'grey');
+  addWatermarks(ctx, details.BusinessName, width, height);
 
   return canvas.toBuffer('image/png');
 };
