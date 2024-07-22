@@ -47,14 +47,16 @@ exports.generateBusinessCard = async (details) => {
   drawText(ctx, `Website: ${details.WebsiteURL}`, 50, 310, 30);
   drawText(ctx, `Category: ${details.Category}`, 50, 360, 30);
 
-  const locationText = `Location: ${details.Location}`;
-  const locationMaxWidth = width - 100; // Adjust as needed
-  const locationLines = wrapText(ctx, locationText, locationMaxWidth);
-  let locationY = 410;
-  locationLines.forEach(line => {
-    drawText(ctx, line, 50, locationY, 30);
-    locationY += 40; // Adjust line height as needed
-  });
+ // Simplified location text handling
+ const locationText = `Location: ${details.Location}`;
+ const maxLength = 60; // Maximum number of characters per line
+ let locationY = 410;
+ 
+ for (let i = 0; i < locationText.length; i += maxLength) {
+   const line = locationText.substring(i, i + maxLength);
+   drawText(ctx, line, 50, locationY, 30);
+   locationY += 40; // Adjust line height as needed
+ }
 
   const qrCode = generateQRCode(details.WebsiteURL);
   const qrImage = await loadImage(qrCode);
@@ -65,3 +67,8 @@ exports.generateBusinessCard = async (details) => {
 
   return canvas.toBuffer('image/png');
 };
+
+
+
+
+
