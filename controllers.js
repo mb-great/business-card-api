@@ -9,7 +9,7 @@ exports.getBusinessCard = async (req, res) => {
       PhoneNo: req.query.PhoneNo || '123-456-7890',
       WebsiteURL: req.query.WebsiteURL || 'https://example.com',
       Category: req.query.Category || 'Retail',
-      Location: req.query.Location || '123 Main St, Sample City, Sample District kdjn;kjgnkjsgknkgkn kfbkk fl dndnkdnk lorem dkdkdk kdkdkdkdkkdjn;kjgnkjsgknkgkn kfbkk fl dndnkdnk lorem dkdkdk kdkdkdkdk '
+      Location: req.query.Location || '123 Main St, Sample City, Sample District'
     };
 
     const imageBuffer = await cardService.generateBusinessCard(details);
