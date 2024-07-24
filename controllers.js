@@ -13,12 +13,11 @@ exports.getBusinessCard = async (req, res) => {
       PhoneNo: details.PhoneNo || '123-456-7890',
       Email: details.Email || 'hehe@xyz.com',
       WebsiteURL: details.WebsiteURL || 'https://example.com',
-      Address: details.Address || '123 Main St, Sample City, Sample District',
-      District: details.District || 'Sample District',
-      City: details.City || 'Sample City',
-      State: details.State || 'Sample City',
-      Pincode: details.Pincode || 'Sample City',
-      LogoURL:details.LogoURL || ''
+      Address: details.Address || 'Dominos',
+      City: details.City || 'Cougnaught Place',
+      State: details.State || 'Delhi',
+      Pincode: details.Pincode || '110001',
+      LogoURL:details.LogoURL || exmImg
     };
     // const cardDetails = {
     //   BusinessName: details.BusinessName || 'Example Business',

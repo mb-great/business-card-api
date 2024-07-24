@@ -5,18 +5,6 @@ const qr = require("qr-image");
 const width = 1050;
 const height = 600;
 
-async function loadImageFromFile(filePath) {
-  try {
-    const fullPath = path.resolve(__dirname, filePath); // Resolves the full path
-    const file = fs.readFileSync(fullPath); // Read file synchronously
-    return await loadImage(file); // Pass the buffer to loadImage
-  } catch (error) {
-    console.error("Error loading PNG image from file:", filePath);
-    console.error("Error details:", error);
-    throw error;
-  }
-}
-
 function drawText(ctx, text, x, y, fontSize, color = "black", rotate = 0) {
   ctx.save();
   ctx.translate(x, y);
@@ -51,9 +39,11 @@ exports.generateBusinessCard = async (details) => {
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext("2d");
     // Load PNG images
-    const phoneIconImg = await loadImage("./assets/phone.png");
+    const categoryIconImg = await loadImage("./assets/category.png");
+    const emailIconImg = await loadImage("./assets/email.png");
     const globeIconImg = await loadImage("./assets/globe.png");
     const locationPinDropImg = await loadImage("./assets/location.png");
+    const phoneIconImg = await loadImage("./assets/phone.png");
 
     // Set background color
     ctx.fillStyle = "#ffffff";
@@ -84,60 +74,120 @@ exports.generateBusinessCard = async (details) => {
     let textY = margin + 150;
     const lineHeight = 40;
 
-    // Draw PNG images (icons)
-    ctx.drawImage(phoneIconImg, margin, height - 100, 50, 50);
-    // ctx.drawImage(globeIconImg, width / 2 - 25, height - 100, 50, 50);
-    // ctx.drawImage(locationPinDropImg, width - 100, height - 100, 50, 50);
-
     //details
+
+    //categoryIconImg
+    ctx.drawImage(categoryIconImg, margin, textY - 29, 40, 40);
 
     //Category
     if (details.Category && details.Category.trim() !== "") {
-      drawText(ctx, `Category: ${details.Category}`, margin, textY, 30);
-      textY += lineHeight;
-    }
-    // ctx.drawImage(PhoneIconSvgImg, width - 250, height - 230, 200, 200);
-    // PhoneNo
-    if (details.PhoneNo && details.PhoneNo.trim() !== "") {
-      drawText(ctx, `Phone: ${details.PhoneNo}`, margin, textY, 30);
-      textY += lineHeight;
-    }
-    // Email
-    if (details.Email && details.Email.trim() !== "") {
-      drawText(ctx, `Phone: ${details.Email}`, margin, textY, 30);
-      textY += lineHeight;
-    }
-    // WebsiteURL
-    if (details.WebsiteURL && details.WebsiteURL.trim() !== "") {
-      drawText(ctx, `Phone: ${details.WebsiteURL}`, margin, textY, 30);
+      drawText(ctx, "Category:", margin + 60, textY, 30, "gray", "light"); // Light font weight
+      const textWidth = ctx.measureText("Category:").width; // Measure the width of the text drawn
+      drawText(
+        ctx,
+        details.Category,
+        margin + 60 + 4 * textWidth,
+        textY,
+        30,
+        "black",
+        "normal"
+      ); // Bold font weight
       textY += lineHeight;
     }
 
-    // Location
+    //phoneImg
+    ctx.drawImage(phoneIconImg, margin+5, textY - 29, 35, 35);
+
+    // PhoneNo
+    if (details.PhoneNo && details.PhoneNo.trim() !== "") {
+      drawText(ctx, "Phone: ", margin + 60, textY, 30, "gray", "light"); // Light font weight
+      const textWidth = ctx.measureText("Phone: ").width; // Measure the width of the text drawn
+      drawText(
+        ctx,
+        details.PhoneNo,
+        margin + 60 + 5 * textWidth,
+        textY,
+        30,
+        "black",
+        "normal"
+      ); // Bold font weight
+      textY += lineHeight;
+    }
+
+    //EmailImg
+    ctx.drawImage(emailIconImg, margin+5, textY - 29, 35, 35);
+
+    // Email
+    if (details.Email && details.Email.trim() !== "") {
+      drawText(ctx, "Email: ", margin + 60, textY, 30, "gray", "light"); // Light font weight
+      const textWidth = ctx.measureText("Email: ").width; // Measure the width of the text drawn
+      drawText(
+        ctx,
+        details.Email,
+        margin + 60 + 5.7 * textWidth,
+        textY,
+        30,
+        "black",
+        "normal"
+      ); // Bold font weight
+      textY += lineHeight;
+    }
+
+    //GlobeImg
+    ctx.drawImage(globeIconImg, margin + 5, textY - 29, 35, 35);
+
+    // WebsiteURL
+    if (details.WebsiteURL && details.WebsiteURL.trim() !== "") {
+      drawText(ctx, "Website: ", margin + 60, textY, 30, "gray", "light"); // Light font weight
+      const textWidth = ctx.measureText("Website: ").width; // Measure the width of the text drawn
+      drawText(
+        ctx,
+        details.WebsiteURL,
+        margin + 60 + 4.2 * textWidth,
+        textY,
+        30,
+        "black",
+        "normal"
+      ); // Bold font weight
+      textY += lineHeight;
+    }
+
+    //locationPinImg
+    ctx.drawImage(locationPinDropImg, margin+10, textY - 29, 25, 35);
+    // Address
     if (details.Address && details.Address.trim() !== "") {
-      drawText(ctx, `Address: ${details.Address}`, margin, textY, 30);
+      drawText(ctx, "Address: ", margin + 60, textY, 30, "gray", "light"); // Light font weight
+      const textWidth = ctx.measureText("Address: ").width; // Measure the width of the text drawn
+      drawText(
+        ctx,
+        details.Address,
+        margin + 60 + 4.2 * textWidth,
+        textY,
+        30,
+        "black",
+        "normal"
+      ); // Bold font weight
       textY += lineHeight;
     }
-    if (details.District && details.District.trim() !== "") {
-      drawText(ctx, `District: ${details.District}`, margin, textY, 30);
+    //City
+    if (details.City && details.City.trim() !== "") {drawText(
+        ctx,
+        `${details.City}`,
+        margin + 235,
+        textY,
+        30
+      );
       textY += lineHeight;
     }
-    if (details.City && details.City.trim() !== "") {
-      drawText(ctx, `City: ${details.City}`, margin, textY, 30);
-      textY += lineHeight;
-    }
+   
     if (details.State && details.State.trim() !== "") {
-      if (details.Pincode && details.Pincode.trim() !== "") {
-        drawText(
-          ctx,
-          `State: ${details.State}-${details.Pincode}`,
-          margin,
-          textY,
-          30
-        );
-      } else {
-        drawText(ctx, `State: ${details.State}`, margin, textY, 30);
-      }
+      drawText(
+        ctx,
+        `${details.State} ${details.Pincode}`,
+        margin + 235,
+        textY,
+        30
+      );
     }
     textY += lineHeight;
 
