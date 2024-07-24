@@ -52,13 +52,42 @@ exports.generateBusinessCard = async (details) => {
     // Margins
     const margin = 50;
 
-    // Draw the logo
     if (details.LogoURL && details.LogoURL.trim() !== "") {
-      const logoImage = await loadImage(details.LogoURL);
-      if (logoImage) {
-        ctx.drawImage(logoImage, width - 170, 50, 120, 60);
+      try {
+        const logoImage = await loadImage(details.LogoURL);
+        const maxWidth = 120;
+        const maxHeight = 60;
+  
+        // Calculate aspect ratio
+        const aspectRatio = logoImage.width / logoImage.height;
+        let logoWidth = maxWidth;
+        let logoHeight = maxHeight;
+  
+        if (logoImage.width > logoImage.height) {
+          logoHeight = maxWidth / aspectRatio;
+        } else {
+          logoWidth = maxHeight * aspectRatio;
+        }
+  
+        // Ensure the logo dimensions do not exceed the max values
+        if (logoWidth > maxWidth) {
+          logoWidth = maxWidth;
+          logoHeight = maxWidth / aspectRatio;
+        }
+        if (logoHeight > maxHeight) {
+          logoHeight = maxHeight;
+          logoWidth = maxHeight * aspectRatio;
+        }
+  
+        const logoX = width - logoWidth - 50;
+        const logoY = 50;
+  
+        ctx.drawImage(logoImage, logoX, logoY-3, logoWidth, logoHeight);
+      } catch (error) {
+        console.error('Error loading logo image:', error);
       }
     }
+  
 
     const businessNameText = `${details.BusinessName}`.trim();
     drawText(ctx, businessNameText, margin, margin + 40, 70, "#333333");

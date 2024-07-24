@@ -18,18 +18,9 @@ exports.getBusinessCard = async (req, res) => {
       State: details.State || 'California',
       Pincode: details.Pincode || '94043',
       Country: details.Country || 'USA',
-      LogoURL:details.LogoURL || exmImg
+      LogoURL:details.LogoURL || 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg'
     };
-    // const cardDetails = {
-    //   BusinessName: details.BusinessName || 'Example Business',
-    //   City: details.City || 'Sample City',
-    //   District: details.District || 'Sample District',
-    //   PhoneNo: details.PhoneNo || '123-456-7890',
-    //   WebsiteURL: details.WebsiteURL || 'https://example.com',
-    //   Category: details.Category || 'Retail',
-    //   Location: details.Location || '123 Main St, Sample City, Sample District'
-    // };
-
+   
     // Generate the business card image
     const imageBuffer = await cardService.generateBusinessCard(cardDetails);
 
