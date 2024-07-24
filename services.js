@@ -57,18 +57,18 @@ exports.generateBusinessCard = async (details) => {
         const logoImage = await loadImage(details.LogoURL);
         const maxWidth = 120;
         const maxHeight = 60;
-  
+
         // Calculate aspect ratio
         const aspectRatio = logoImage.width / logoImage.height;
         let logoWidth = maxWidth;
         let logoHeight = maxHeight;
-  
+
         if (logoImage.width > logoImage.height) {
           logoHeight = maxWidth / aspectRatio;
         } else {
           logoWidth = maxHeight * aspectRatio;
         }
-  
+
         // Ensure the logo dimensions do not exceed the max values
         if (logoWidth > maxWidth) {
           logoWidth = maxWidth;
@@ -78,16 +78,15 @@ exports.generateBusinessCard = async (details) => {
           logoHeight = maxHeight;
           logoWidth = maxHeight * aspectRatio;
         }
-  
+
         const logoX = width - logoWidth - 50;
         const logoY = 50;
-  
-        ctx.drawImage(logoImage, logoX, logoY-3, logoWidth, logoHeight);
+
+        ctx.drawImage(logoImage, logoX, logoY - 3, logoWidth, logoHeight);
       } catch (error) {
-        console.error('Error loading logo image:', error);
+        console.error("Error loading logo image:", error);
       }
     }
-  
 
     const businessNameText = `${details.BusinessName}`.trim();
     drawText(ctx, businessNameText, margin, margin + 40, 70, "#333333");
@@ -106,7 +105,9 @@ exports.generateBusinessCard = async (details) => {
     //details
 
     //categoryIconImg
-    ctx.drawImage(categoryIconImg, margin, textY - 29, 40, 40);
+    if (details.Category && details.Category.trim() !== "") {
+      ctx.drawImage(categoryIconImg, margin, textY - 29, 40, 40);
+    }
 
     //Category
     if (details.Category && details.Category.trim() !== "") {
@@ -125,7 +126,9 @@ exports.generateBusinessCard = async (details) => {
     }
 
     //phoneImg
-    ctx.drawImage(phoneIconImg, margin + 5, textY - 29, 35, 35);
+    if (details.PhoneNo && details.PhoneNo.trim() !== "") {
+      ctx.drawImage(phoneIconImg, margin + 5, textY - 29, 35, 35);
+    }
 
     // PhoneNo
     if (details.PhoneNo && details.PhoneNo.trim() !== "") {
@@ -144,7 +147,9 @@ exports.generateBusinessCard = async (details) => {
     }
 
     //EmailImg
-    ctx.drawImage(emailIconImg, margin + 5, textY - 29, 35, 35);
+    if (details.Email && details.Email.trim() !== "") {
+      ctx.drawImage(emailIconImg, margin + 5, textY - 29, 35, 35);
+    }
 
     // Email
     if (details.Email && details.Email.trim() !== "") {
@@ -163,7 +168,9 @@ exports.generateBusinessCard = async (details) => {
     }
 
     //GlobeImg
-    ctx.drawImage(globeIconImg, margin + 5, textY - 29, 35, 35);
+    if (details.WebsiteURL && details.WebsiteURL.trim() !== "") {
+      ctx.drawImage(globeIconImg, margin + 5, textY - 29, 35, 35);
+    }
 
     // WebsiteURL
     if (details.WebsiteURL && details.WebsiteURL.trim() !== "") {
@@ -182,7 +189,10 @@ exports.generateBusinessCard = async (details) => {
     }
 
     //locationPinImg
-    ctx.drawImage(locationPinDropImg, margin + 10, textY - 29, 25, 35);
+    if (details.Address && details.Address.trim() !== "") {
+      ctx.drawImage(locationPinDropImg, margin + 10, textY - 29, 25, 35);
+    }
+    
     // Address
     if (details.Address && details.Address.trim() !== "") {
       drawText(ctx, "Address: ", margin + 60, textY, 30, "gray", "light"); // Light font weight

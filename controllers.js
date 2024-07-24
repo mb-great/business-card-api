@@ -8,17 +8,17 @@ exports.getBusinessCard = async (req, res) => {
 
     // Validate and use default values if necessary
     const cardDetails = {
-      BusinessName: details.BusinessName || 'Google',
-      Category: details.Category || 'Multinational Corporation and Technology company',
-      PhoneNo: details.PhoneNo || '+1-650-253-0000',
-      Email: details.Email || 'support@google.com',
-      WebsiteURL: details.WebsiteURL || 'https://www.google.com',
-      Address: details.Address || '1600 Amphitheatre Parkway',
-      City: details.City || 'Mountain View',
-      State: details.State || 'California',
-      Pincode: details.Pincode || '94043',
-      Country: details.Country || 'USA',
-      LogoURL:details.LogoURL || 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg'
+      BusinessName: details.BusinessName || '',
+      Category: details.Category || '',
+      PhoneNo: details.PhoneNo || '',
+      Email: details.Email || '',
+      WebsiteURL: details.WebsiteURL || '',
+      Address: details.Address || '',
+      City: details.City || '',
+      State: details.State || '',
+      Pincode: details.Pincode || '',
+      Country: details.Country || '',
+      LogoURL:details.LogoURL || ''
     };
    
     // Generate the business card image
