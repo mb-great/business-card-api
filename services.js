@@ -38,6 +38,10 @@ exports.generateBusinessCard = async (details) => {
   try {
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext("2d");
+
+    // Set DPI
+    canvas.dpi = 96; // Set this to your desired DPI
+
     // Load PNG images
     const categoryIconImg = await loadImage("./assets/category.png");
     const emailIconImg = await loadImage("./assets/email.png");
@@ -48,6 +52,7 @@ exports.generateBusinessCard = async (details) => {
     // Set background color
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, width, height);
+    ctx.font = '10px "Arial"';
 
     // Margins
     const margin = 50;
@@ -192,7 +197,7 @@ exports.generateBusinessCard = async (details) => {
     if (details.Address && details.Address.trim() !== "") {
       ctx.drawImage(locationPinDropImg, margin + 10, textY - 29, 25, 35);
     }
-    
+
     // Address
     if (details.Address && details.Address.trim() !== "") {
       drawText(ctx, "Address: ", margin + 60, textY, 30, "gray", "light"); // Light font weight
