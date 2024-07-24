@@ -96,7 +96,7 @@ exports.generateBusinessCard = async (details) => {
     }
 
     //phoneImg
-    ctx.drawImage(phoneIconImg, margin+5, textY - 29, 35, 35);
+    ctx.drawImage(phoneIconImg, margin + 5, textY - 29, 35, 35);
 
     // PhoneNo
     if (details.PhoneNo && details.PhoneNo.trim() !== "") {
@@ -115,7 +115,7 @@ exports.generateBusinessCard = async (details) => {
     }
 
     //EmailImg
-    ctx.drawImage(emailIconImg, margin+5, textY - 29, 35, 35);
+    ctx.drawImage(emailIconImg, margin + 5, textY - 29, 35, 35);
 
     // Email
     if (details.Email && details.Email.trim() !== "") {
@@ -153,7 +153,7 @@ exports.generateBusinessCard = async (details) => {
     }
 
     //locationPinImg
-    ctx.drawImage(locationPinDropImg, margin+10, textY - 29, 25, 35);
+    ctx.drawImage(locationPinDropImg, margin + 10, textY - 29, 25, 35);
     // Address
     if (details.Address && details.Address.trim() !== "") {
       drawText(ctx, "Address: ", margin + 60, textY, 30, "gray", "light"); // Light font weight
@@ -170,16 +170,11 @@ exports.generateBusinessCard = async (details) => {
       textY += lineHeight;
     }
     //City
-    if (details.City && details.City.trim() !== "") {drawText(
-        ctx,
-        `${details.City}`,
-        margin + 235,
-        textY,
-        30
-      );
+    if (details.City && details.City.trim() !== "") {
+      drawText(ctx, `${details.City}`, margin + 235, textY, 30);
       textY += lineHeight;
     }
-   
+    //State + pincode
     if (details.State && details.State.trim() !== "") {
       drawText(
         ctx,
@@ -190,6 +185,12 @@ exports.generateBusinessCard = async (details) => {
       );
     }
     textY += lineHeight;
+
+    //Country
+    if (details.Country && details.Country.trim() !== "") {
+      drawText(ctx, `${details.Country}`, margin + 235, textY, 30);
+      textY += lineHeight;
+    }
 
     const qrCode = generateQRCode(details.WebsiteURL);
     const qrImage = await loadImage(qrCode);
