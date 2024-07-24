@@ -236,9 +236,15 @@ exports.generateBusinessCard = async (details) => {
       textY += lineHeight;
     }
 
-    const qrCode = generateQRCode(details.WebsiteURL);
-    const qrImage = await loadImage(qrCode);
-    ctx.drawImage(qrImage, width - 250, height - 230, 200, 200);
+    if (details.WebsiteURL && details.WebsiteURL.trim() !== "") {
+      const qrCode = generateQRCode(details.WebsiteURL);
+      const qrImage = await loadImage(qrCode);
+      ctx.drawImage(qrImage, width - 250, height - 230, 200, 200);
+    } else if (details.Email && details.Email.trim() !== "") {
+      const qrCode = generateQRCode(`mailto:${details.Email}`);
+      const qrImage = await loadImage(qrCode);
+      ctx.drawImage(qrImage, width - 250, height - 230, 200, 200);
+    }
 
     drawText(ctx, "Powered by Pintude", 50, height - 50, 30, "grey");
     addWatermarks(ctx, details.BusinessName, width, height);
