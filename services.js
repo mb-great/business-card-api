@@ -6,24 +6,42 @@ const width = 1050;
 const height = 600;
 
 function shortenBusinessNameToFitCanvas(ctx, name, maxWidth) {
-  const titles = ["mr.", "mrs.", "shree", "shri"];
-  const preserveKeywords = [
-    "and",
-    "sons",
-    "brothers",
-    "bros",
-    "ltd",
-    "limited",
-    "corp",
-    "corporation",
-    "inc",
-    "company",
-    "co",
-    "llc",
-    "plc"
+  // List of common business types and categories
+  const businessTypes = [
+    "catering", "travel", "food", "restaurant", "bakery", "shoe", "clothing", "jewelry", "auto", "electronics",
+    "pharmacy", "consulting", "law", "finance", "banking", "real estate", "insurance", "media", "advertising",
+    "construction", "manufacturing", "technology", "software", "engineering", "education", "healthcare", "fitness",
+    "beauty", "design", "architecture", "cleaning", "maintenance", "services", "maintenance", "logistics", "transport",
+    "entertainment", "tourism", "agency", "solutions", "apparel", "consultancy", "medical", "home", "products",
+    "supplies", "marketing", "communications", "strategy", "management", "security", "support", "delivery", "cafe",
+    "bar", "pub", "brewery", "gym", "studio", "clinic", "hospital", "center", "research", "development", "services",
+    "training", "education", "care", "therapy", "clinic", "restaurant", "diner", "takeout", "fastfood", "convenience",
+    "shop", "store", "warehouse", "distribution", "import", "export", "wholesale", "retail", "franchise", "startup",
+    "venture", "partnership", "coaching", "consultation", "advisory", "lawyers", "accounting", "tax", "audit",
+    "estate", "law", "practice", "medical", "surgery", "dental", "orthopedic", "pediatric", "veterinary", "chiropractic",
+    "psychology", "therapy", "nursing", "hospitality", "resort", "hotel", "motel", "inn", "bed and breakfast", "lodge",
+    "hostel", "campground", "trading", "investment", "capital", "funding", "equity", "finance", "consulting",
+    "advisory", "services", "engineering", "software", "hardware", "IT", "technology", "networking", "cybersecurity",
+    "AI", "machine learning", "data", "analytics", "cloud", "infrastructure", "support", "operations", "maintenance",
+    "testing", "quality", "assurance", "project management", "design", "creative", "digital", "media", "film",
+    "production", "photography", "video", "audio", "recording", "publishing", "print", "media", "news", "broadcast",
+    "streaming", "gaming", "eSports", "recreation", "sports", "fitness", "wellness", "therapy", "personal training",
+    "massage", "spas", "salons", "beauty", "makeup", "cosmetics", "hair", "nails", "fashion", "style", "jewelry", "watches",
+    "accessories", "gifts", "crafts", "arts", "antiques", "collectibles", "vintage", "secondhand", "thrift", "auction",
+    "services", "home improvement", "renovation", "remodeling", "repair", "landscaping", "gardening", "pest control",
+    "security", "locks", "alarms", "surveillance", "cleaning", "janitorial", "office", "commercial", "industrial",
+    "retail", "personal", "residential", "property", "management", "investment", "development", "realty", "brokers",
+    "agents", "consultants", "advisors", "training", "coaching", "mentoring", "tutoring", "education", "courses", "classes"
+    // You can add more types as needed
   ];
 
-  // Replace common conjunctions and keywords with their abbreviated forms
+  // Basic patterns and terms to preserve
+  const importantPatterns = [
+    /\b(ltd|limited|inc|corp|company|co|llc|plc|pvt|private)\b/i,
+    /\b(and|sons|bros)\b/i
+  ];
+
+  // Apply common replacements
   const replacements = [
     { regex: /\band\b/gi, replacement: "&" },
     { regex: /\bsons\b/gi, replacement: "Sons" },
@@ -32,56 +50,57 @@ function shortenBusinessNameToFitCanvas(ctx, name, maxWidth) {
     { regex: /\blimited\b/gi, replacement: "Ltd." }
   ];
 
+  // Apply replacements
   replacements.forEach(({ regex, replacement }) => {
     name = name.replace(regex, replacement);
   });
 
-  // Split the name into words
+  // Split name into words
   let words = name.split(" ");
 
-  // Helper function to capitalize the first letter
+  // Capitalize the first letter of each word
   function capitalizeFirstLetter(word) {
     return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
   }
 
-  // Function to get the abbreviated version of the name
-  function getAbbreviatedName(words) {
-    let result = words.map((word, index) => {
-      const lowerCaseWord = word.toLowerCase();
-
-      // Preserve titles
-      if (titles.includes(lowerCaseWord)) {
-        return capitalizeFirstLetter(word);
-      }
-
-      // Preserve last name and important keywords
-      if (
-        index === words.length - 1 || // Last word
-        preserveKeywords.some(keyword => new RegExp(`\\b${keyword}\\b`, 'i').test(words[index + 1])) || // Word before preserveKeywords
-        preserveKeywords.some(keyword => new RegExp(`\\b${keyword}\\b`, 'i').test(words[index])) // Word is a preserveKeyword
-      ) {
-        return capitalizeFirstLetter(word);
-      }
-
-      // Abbreviate other words
-      return word.charAt(0).toUpperCase() + ".";
-    });
-
-    return result.join(" ");
+  // Function to check if a word is a business type
+  function isBusinessType(word) {
+    return businessTypes.some(type => new RegExp(`\\b${type}\\b`, 'i').test(word));
   }
 
-  // Iterate and shorten the name until it fits within the maxWidth
+  // Function to preserve important patterns
+  function isImportant(word) {
+    return importantPatterns.some(pattern => pattern.test(word)) || isBusinessType(word);
+  }
+
+  // Generate the abbreviated version of the name
+  function getAbbreviatedName(words) {
+    return words
+      .map((word, index) => {
+        const lowerCaseWord = word.toLowerCase();
+
+        // Preserve important keywords and last words
+        if (isImportant(lowerCaseWord) || index === words.length - 1) {
+          return capitalizeFirstLetter(word);
+        }
+
+        // Abbreviate other words
+        return word.charAt(0).toUpperCase() + ".";
+      })
+      .join(" ");
+  }
+
+  // Shorten the name until it fits within the maxWidth
   let abbreviatedName = getAbbreviatedName(words);
-  while (
-    ctx.measureText(abbreviatedName).width > maxWidth &&
-    words.length > 1
-  ) {
+  while (ctx.measureText(abbreviatedName).width > maxWidth && words.length > 1) {
     words = words.slice(0, -1);
     abbreviatedName = getAbbreviatedName(words) + "...";
   }
 
   return abbreviatedName;
 }
+
+
 
 
 function drawText(ctx, text, x, y, fontSize, color = "black", rotate = 0) {
