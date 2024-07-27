@@ -46,28 +46,28 @@ function shortenBusinessNameToFitCanvas(ctx, name, maxWidth) {
 
   // Function to get the abbreviated version of the name
   function getAbbreviatedName(words) {
-    return words
-      .map((word, index) => {
-        const lowerCaseWord = word.toLowerCase();
+    let result = words.map((word, index) => {
+      const lowerCaseWord = word.toLowerCase();
 
-        // Preserve titles
-        if (titles.includes(lowerCaseWord)) {
-          return capitalizeFirstLetter(word);
-        }
+      // Preserve titles
+      if (titles.includes(lowerCaseWord)) {
+        return capitalizeFirstLetter(word);
+      }
 
-        // Preserve last name and important keywords
-        if (
-          index === words.length - 1 || // Last word
-          preserveKeywords.some(keyword => new RegExp(`\\b${keyword}\\b`, 'i').test(words[index + 1])) || // Word before preserveKeywords
-          preserveKeywords.some(keyword => new RegExp(`\\b${keyword}\\b`, 'i').test(words[index])) // Word is a preserveKeyword
-        ) {
-          return capitalizeFirstLetter(word);
-        }
+      // Preserve last name and important keywords
+      if (
+        index === words.length - 1 || // Last word
+        preserveKeywords.some(keyword => new RegExp(`\\b${keyword}\\b`, 'i').test(words[index + 1])) || // Word before preserveKeywords
+        preserveKeywords.some(keyword => new RegExp(`\\b${keyword}\\b`, 'i').test(words[index])) // Word is a preserveKeyword
+      ) {
+        return capitalizeFirstLetter(word);
+      }
 
-        // Abbreviate other words
-        return word.charAt(0).toUpperCase() + ".";
-      })
-      .join(" ");
+      // Abbreviate other words
+      return word.charAt(0).toUpperCase() + ".";
+    });
+
+    return result.join(" ");
   }
 
   // Iterate and shorten the name until it fits within the maxWidth
@@ -82,6 +82,7 @@ function shortenBusinessNameToFitCanvas(ctx, name, maxWidth) {
 
   return abbreviatedName;
 }
+
 
 function drawText(ctx, text, x, y, fontSize, color = "black", rotate = 0) {
   ctx.save();
