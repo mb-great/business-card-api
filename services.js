@@ -5,6 +5,84 @@ const qr = require("qr-image");
 const width = 1050;
 const height = 600;
 
+function shortenBusinessNameToFitCanvas(ctx, name, maxWidth) {
+  const titles = ["mr.", "mrs.", "shree", "shri"];
+  const preserveKeywords = [
+    "and",
+    "sons",
+    "brothers",
+    "bros",
+    "ltd",
+    "limited",
+    "corp",
+    "corporation",
+    "inc",
+    "company",
+    "co",
+    "llc",
+    "plc"
+  ];
+
+  // Replace common conjunctions and keywords with their abbreviated forms
+  const replacements = [
+    { regex: /\band\b/gi, replacement: "&" },
+    { regex: /\bsons\b/gi, replacement: "Sons" },
+    { regex: /\bbrothers\b/gi, replacement: "Bros" },
+    { regex: /\bltd\b/gi, replacement: "Ltd." },
+    { regex: /\blimited\b/gi, replacement: "Ltd." }
+  ];
+
+  replacements.forEach(({ regex, replacement }) => {
+    name = name.replace(regex, replacement);
+  });
+
+  // Split the name into words
+  let words = name.split(" ");
+
+  // Helper function to capitalize the first letter
+  function capitalizeFirstLetter(word) {
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  }
+
+  // Function to get the abbreviated version of the name
+  function getAbbreviatedName(words) {
+    return words
+      .map((word, index) => {
+        const lowerCaseWord = word.toLowerCase();
+
+        // Preserve titles
+        if (titles.includes(lowerCaseWord)) {
+          return capitalizeFirstLetter(word);
+        }
+
+        // Preserve last name and important keywords
+        if (
+          index === words.length - 1 || // Last word
+          preserveKeywords.some(keyword => new RegExp(`\\b${keyword}\\b`, 'i').test(words[index + 1])) || // Word before preserveKeywords
+          preserveKeywords.some(keyword => new RegExp(`\\b${keyword}\\b`, 'i').test(words[index])) // Word is a preserveKeyword
+        ) {
+          return capitalizeFirstLetter(word);
+        }
+
+        // Abbreviate other words
+        return word.charAt(0).toUpperCase() + ".";
+      })
+      .join(" ");
+  }
+
+  // Iterate and shorten the name until it fits within the maxWidth
+  let abbreviatedName = getAbbreviatedName(words);
+  while (
+    ctx.measureText(abbreviatedName).width > maxWidth &&
+    words.length > 1
+  ) {
+    words = words.slice(0, -1);
+    abbreviatedName = getAbbreviatedName(words) + "...";
+  }
+
+  return abbreviatedName;
+}
+
 function drawText(ctx, text, x, y, fontSize, color = "black", rotate = 0) {
   ctx.save();
   ctx.translate(x, y);
@@ -13,6 +91,21 @@ function drawText(ctx, text, x, y, fontSize, color = "black", rotate = 0) {
   ctx.font = `${fontSize}px Arial`;
   ctx.fillText(text, 0, 0);
   ctx.restore();
+}
+function drawTextMaxWidth(ctx, text, x, y,fontSize, maxWidth, color) {
+  ctx.fillStyle = color;
+  ctx.font = `${fontSize}px Arial`;
+
+  // Decrease the font size until the text fits within the maxWidth
+  while (ctx.measureText(text).width > maxWidth && fontSize > 1) {
+    fontSize--;
+    ctx.font = `${fontSize}px Arial`;
+  }
+
+  // Draw the text
+  ctx.fillText(text, x, y);
+  fontSize = 40; // Adjust the initial font size as needed
+  ctx.font = `${fontSize}px Arial`;
 }
 
 function generateQRCode(url) {
@@ -57,6 +150,7 @@ exports.generateBusinessCard = async (details) => {
     // Margins
     const margin = 50;
 
+    // Draw logo
     if (details.LogoURL && details.LogoURL.trim() !== "") {
       try {
         const logoImage = await loadImage(details.LogoURL);
@@ -93,8 +187,116 @@ exports.generateBusinessCard = async (details) => {
       }
     }
 
-    const businessNameText = `${details.BusinessName}`.trim();
-    drawText(ctx, businessNameText, margin, margin + 40, 70, "#333333");
+
+    let addressError = false;
+    let categoryError = false;
+    let countryError = false;
+    let stateError = false;
+    let cityError = false;
+    let pinError = false;
+    let phoneError = false;
+    let businessError = false;
+
+    let errorMessage = "Following parameters entered are wrong - ";
+
+    // Validate the length of the input details
+    if (details.Address.length > 100 ) {
+      categoryError = true;
+      errorMessage += "Category, ";
+    }
+    if (details.Category.length > 100 ) {
+      categoryError = true;
+      errorMessage += "Category, ";
+    }
+    if (details.Email.length > 200) {
+      emailError = true;
+      errorMessage += "Email, ";
+    }
+    if (details.Country.length > 55) {
+      countryError = true;
+      errorMessage += "Country, ";
+    }
+    if (details.State.length > 30) {
+      stateError = true;
+      errorMessage += "State, ";
+    }
+    if (details.City.length > 30 ) {
+      cityError = true;
+      errorMessage += "City, ";
+    }
+    if (details.Pincode.length > 13) {
+      pinError = true;
+      errorMessage += "Pincode, ";
+    }
+    if (details.BusinessName.length > 300) {
+      businessError = true;
+      errorMessage += "BusinessName, ";
+    }
+    if (details.PhoneNo.length > 20) {
+      businessError = true;
+      errorMessage += "PhoneNo, ";
+    }
+
+    // Trim the trailing comma and space
+    if (errorMessage.endsWith(", ")) {
+      errorMessage = errorMessage.slice(0, -2);
+    }
+
+    // Output the error message if any errors were found
+    if (
+      categoryError ||
+      addressError ||
+      countryError ||
+      stateError ||
+      cityError ||
+      pinError ||
+      phoneError ||
+      businessError
+    ) {
+      console.log('Category error:', categoryError);
+      console.log('Address error:', addressError);
+      console.log('Country error:', countryError);
+      console.log('State error:', stateError);
+      console.log('City error:', cityError);
+      console.log('Pin error:', pinError);
+      console.log('Business error:', businessError);
+      drawTextMaxWidth(
+        ctx,
+        errorMessage,
+        margin,
+        height-100,25,
+        500,
+        "red"
+      );
+    } else {
+      console.log("All parameters are valid.");
+    }
+
+    // Draw the business name
+    if (details.BusinessName && details.BusinessName.trim() !== "" && !businessError) {
+      const businessNameText = `${details.BusinessName}`.trim();
+
+      const maxWidth = 700; // Set this to your desired maximum width
+      const shortenedName = shortenBusinessNameToFitCanvas(
+        ctx,
+        businessNameText,
+        maxWidth
+      );
+
+      if (shortenedName === businessNameText) {
+        drawText(ctx, shortenedName, margin, margin + 40, 70, "#333333");
+      } else {
+        drawTextMaxWidth(
+          ctx,
+          shortenedName,
+          margin,
+          margin + 40,40,
+          700,
+          "#333333"
+        );
+      }
+    }
+
     // Draw a separating line below the business name
     ctx.strokeStyle = "#333333";
     ctx.lineWidth = 2;
@@ -115,15 +317,16 @@ exports.generateBusinessCard = async (details) => {
     }
 
     //Category
-    if (details.Category && details.Category.trim() !== "") {
+    if (details.Category && details.Category.trim() !== "" && !categoryError) {
       drawText(ctx, "Category:", margin + 60, textY, 30, "gray", "light"); // Light font weight
       const textWidth = ctx.measureText("Category:").width; // Measure the width of the text drawn
-      drawText(
+      drawTextMaxWidth(
         ctx,
         details.Category,
-        margin + 60 + 4 * textWidth,
+        margin + 235,
         textY,
         30,
+        700,
         "black",
         "normal"
       ); // Bold font weight
@@ -131,7 +334,7 @@ exports.generateBusinessCard = async (details) => {
     }
 
     //phoneImg
-    if (details.PhoneNo && details.PhoneNo.trim() !== "") {
+    if (details.PhoneNo && details.PhoneNo.trim() !== "" && !phoneError) {
       ctx.drawImage(phoneIconImg, margin + 5, textY - 29, 35, 35);
     }
 
@@ -142,7 +345,7 @@ exports.generateBusinessCard = async (details) => {
       drawText(
         ctx,
         details.PhoneNo,
-        margin + 60 + 5 * textWidth,
+        margin + 235,
         textY,
         30,
         "black",
@@ -158,17 +361,8 @@ exports.generateBusinessCard = async (details) => {
 
     // Email
     if (details.Email && details.Email.trim() !== "") {
-      drawText(ctx, "Email: ", margin + 60, textY, 30, "gray", "light"); // Light font weight
-      const textWidth = ctx.measureText("Email: ").width; // Measure the width of the text drawn
-      drawText(
-        ctx,
-        details.Email,
-        margin + 60 + 5.7 * textWidth,
-        textY,
-        30,
-        "black",
-        "normal"
-      ); // Bold font weight
+      drawText(ctx, "Email: ", margin + 60, textY, 30, "gray", "light");
+      drawTextMaxWidth(ctx, details.Email, margin + 235, textY, 30,700, "black", "normal"); // Bold font weight
       textY += lineHeight;
     }
 
@@ -180,11 +374,10 @@ exports.generateBusinessCard = async (details) => {
     // WebsiteURL
     if (details.WebsiteURL && details.WebsiteURL.trim() !== "") {
       drawText(ctx, "Website: ", margin + 60, textY, 30, "gray", "light"); // Light font weight
-      const textWidth = ctx.measureText("Website: ").width; // Measure the width of the text drawn
       drawText(
         ctx,
         details.WebsiteURL,
-        margin + 60 + 4.2 * textWidth,
+        margin + 235,
         textY,
         30,
         "black",
@@ -201,13 +394,12 @@ exports.generateBusinessCard = async (details) => {
     // Address
     if (details.Address && details.Address.trim() !== "") {
       drawText(ctx, "Address: ", margin + 60, textY, 30, "gray", "light"); // Light font weight
-      const textWidth = ctx.measureText("Address: ").width; // Measure the width of the text drawn
-      drawText(
+      drawTextMaxWidth(
         ctx,
         details.Address,
-        margin + 60 + 4.2 * textWidth,
+        margin + 235,
         textY,
-        30,
+        30,700,
         "black",
         "normal"
       ); // Bold font weight
@@ -220,13 +412,12 @@ exports.generateBusinessCard = async (details) => {
     }
     //State + pincode
     if (details.State && details.State.trim() !== "") {
-      drawText(
-        ctx,
-        `${details.State} ${details.Pincode}`,
-        margin + 235,
-        textY,
-        30
-      );
+      if (details.Pincode && details.Pincode.trim() !== "") {
+        drawText(ctx, `${details.State} - ${details.Pincode}`, margin + 235, textY, 30);
+      }
+      else{
+        drawText(ctx, `${details.State}`, margin + 235, textY, 30);
+      }
     }
     textY += lineHeight;
 
