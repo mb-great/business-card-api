@@ -1,5 +1,4 @@
 const { createCanvas, loadImage } = require("canvas");
-const fs = require("fs");
 const qr = require("qr-image");
 
 const width = 1050;
@@ -185,76 +184,83 @@ function shortenBusinessNameToFitCanvas(ctx, name, maxWidth) {
     "Virtual Assistance",
     "Wedding Services",
     "Wine Production",
-    "Youth Development"
+    "Youth Development",
   ];
-  
+ // Basic patterns and terms to preserve
+ const importantPatterns = [
+  /\b(ltd|limited|inc|corp|company|co|llc|plc|pvt|private)\b/i,
+  /\b(and|sons|bros)\b/i
+];
 
-  // Basic patterns and terms to preserve
-  const importantPatterns = [
-    /\b(ltd|limited|inc|corp|company|co|llc|plc|pvt|private)\b/i,
-    /\b(and|sons|bros)\b/i
-  ];
+// Apply common replacements
+const replacements = [
+  { regex: /\band\b/gi, replacement: "&" },
+  { regex: /\bsons\b/gi, replacement: "Sons" },
+  { regex: /\bbrothers\b/gi, replacement: "Bros" },
+  { regex: /\bltd\b/gi, replacement: "Ltd." },
+  { regex: /\blimited\b/gi, replacement: "Ltd." }
+];
 
-  // Apply common replacements
-  const replacements = [
-    { regex: /\band\b/gi, replacement: "&" },
-    { regex: /\bsons\b/gi, replacement: "Sons" },
-    { regex: /\bbrothers\b/gi, replacement: "Bros" },
-    { regex: /\bltd\b/gi, replacement: "Ltd." },
-    { regex: /\blimited\b/gi, replacement: "Ltd." }
-  ];
+// Apply replacements
+replacements.forEach(({ regex, replacement }) => {
+  name = name.replace(regex, replacement);
+});
 
-  // Apply replacements
-  replacements.forEach(({ regex, replacement }) => {
-    name = name.replace(regex, replacement);
-  });
+// Split name into words
+let words = name.split(" ");
 
-  // Split name into words
-  let words = name.split(" ");
+// Capitalize the first letter of each word
+function capitalizeFirstLetter(word) {
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}
 
-  // Capitalize the first letter of each word
-  function capitalizeFirstLetter(word) {
-    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-  }
+// Function to check if a word is a business type
+function isBusinessType(word) {
+  return businessTypes.some(type => new RegExp(`\\b${type}\\b`, 'i').test(word));
+}
 
-  // Function to check if a word is a business type
-  function isBusinessType(word) {
-    return businessTypes.some(type => new RegExp(`\\b${type}\\b`, 'i').test(word));
-  }
+// Function to preserve important patterns
+function isImportant(word) {
+  return importantPatterns.some(pattern => pattern.test(word)) || isBusinessType(word);
+}
 
-  // Function to preserve important patterns
-  function isImportant(word) {
-    return importantPatterns.some(pattern => pattern.test(word)) || isBusinessType(word);
-  }
+// Generate the abbreviated version of the name
+function getAbbreviatedName(words) {
+  return words
+    .map((word, index) => {
+      const lowerCaseWord = word.toLowerCase();
 
-  // Generate the abbreviated version of the name
-  function getAbbreviatedName(words) {
-    return words
-      .map((word, index) => {
-        const lowerCaseWord = word.toLowerCase();
+      // Preserve important keywords and last words
+      if (isImportant(lowerCaseWord) || index === words.length - 1) {
+        return capitalizeFirstLetter(word);
+      }
 
-        // Preserve important keywords and last words
-        if (isImportant(lowerCaseWord) || index === words.length - 1) {
-          return capitalizeFirstLetter(word);
-        }
+      // Abbreviate other words
+      return word.charAt(0).toUpperCase() + ".";
+    })
+    .join(" ");
+}
 
-        // Abbreviate other words
-        return word.charAt(0).toUpperCase() + ".";
-      })
-      .join(" ");
-  }
+// Check if the initial abbreviated name fits
+let abbreviatedName = getAbbreviatedName(words);
 
-  // Shorten the name until it fits within the maxWidth
-  let abbreviatedName = getAbbreviatedName(words);
-  while (ctx.measureText(abbreviatedName).width > maxWidth && words.length > 1) {
-    words = words.slice(0, -1);
-    abbreviatedName = getAbbreviatedName(words) + "...";
-  }
-
+if (ctx.measureText(abbreviatedName).width <= maxWidth) {
   return abbreviatedName;
 }
 
+// If not, iteratively shorten the name from the end
+for (let i = words.length - 1; i >= 0; i--) {
+  words.splice(i, 1); // Remove a word
+  abbreviatedName = getAbbreviatedName(words) + "...";
+  
+  if (ctx.measureText(abbreviatedName).width <= maxWidth) {
+    return abbreviatedName;
+  }
+}
 
+// Fallback: Return the shortest possible abbreviation with ellipsis
+return getAbbreviatedName(["..."]);
+}
 
 
 function drawText(ctx, text, x, y, fontSize, color = "black", rotate = 0) {
@@ -266,7 +272,7 @@ function drawText(ctx, text, x, y, fontSize, color = "black", rotate = 0) {
   ctx.fillText(text, 0, 0);
   ctx.restore();
 }
-function drawTextMaxWidth(ctx, text, x, y,fontSize, maxWidth, color) {
+function drawTextMaxWidth(ctx, text, x, y, fontSize, maxWidth, color) {
   ctx.fillStyle = color;
   ctx.font = `${fontSize}px Arial`;
 
@@ -361,7 +367,6 @@ exports.generateBusinessCard = async (details) => {
       }
     }
 
-
     let addressError = false;
     let categoryError = false;
     let countryError = false;
@@ -374,11 +379,11 @@ exports.generateBusinessCard = async (details) => {
     let errorMessage = "Following parameters entered are wrong - ";
 
     // Validate the length of the input details
-    if (details.Address.length > 100 ) {
+    if (details.Address.length > 100) {
       categoryError = true;
       errorMessage += "Category, ";
     }
-    if (details.Category.length > 100 ) {
+    if (details.Category.length > 100) {
       categoryError = true;
       errorMessage += "Category, ";
     }
@@ -394,7 +399,7 @@ exports.generateBusinessCard = async (details) => {
       stateError = true;
       errorMessage += "State, ";
     }
-    if (details.City.length > 30 ) {
+    if (details.City.length > 30) {
       cityError = true;
       errorMessage += "City, ";
     }
@@ -427,45 +432,43 @@ exports.generateBusinessCard = async (details) => {
       phoneError ||
       businessError
     ) {
-      console.log('Category error:', categoryError);
-      console.log('Address error:', addressError);
-      console.log('Country error:', countryError);
-      console.log('State error:', stateError);
-      console.log('City error:', cityError);
-      console.log('Pin error:', pinError);
-      console.log('Business error:', businessError);
-      drawTextMaxWidth(
-        ctx,
-        errorMessage,
-        margin,
-        height-100,25,
-        500,
-        "red"
-      );
+      console.log("Category error:", categoryError);
+      console.log("Address error:", addressError);
+      console.log("Country error:", countryError);
+      console.log("State error:", stateError);
+      console.log("City error:", cityError);
+      console.log("Pin error:", pinError);
+      console.log("Business error:", businessError);
+      drawTextMaxWidth(ctx, errorMessage, margin, height - 100, 25, 500, "red");
     } else {
       console.log("All parameters are valid.");
     }
 
-    // Draw the business name
-    if (details.BusinessName && details.BusinessName.trim() !== "" && !businessError) {
-      const businessNameText = `${details.BusinessName}`.trim();
+    let shortenedName = "";
 
-      const maxWidth = 700; // Set this to your desired maximum width
-      const shortenedName = shortenBusinessNameToFitCanvas(
+    // Draw the business name
+    if (
+      details.BusinessName &&
+      details.BusinessName.trim() !== "" &&
+      !businessError
+    ) {
+      const businessNameText = `${details.BusinessName}`.trim();
+      const maxWidth = 800;
+      shortenedName = shortenBusinessNameToFitCanvas(
         ctx,
         businessNameText,
         maxWidth
       );
-
-      if (shortenedName === businessNameText) {
-        drawText(ctx, shortenedName, margin, margin + 40, 70, "#333333");
+      if (ctx.measureText(businessNameText).width <= maxWidth) {
+        drawTextMaxWidth(ctx, businessNameText, margin, margin + 40, 70,maxWidth, "#333333");
       } else {
         drawTextMaxWidth(
           ctx,
           shortenedName,
           margin,
-          margin + 40,40,
-          700,
+          margin + 40,
+          40,
+          maxWidth,
           "#333333"
         );
       }
@@ -493,7 +496,6 @@ exports.generateBusinessCard = async (details) => {
     //Category
     if (details.Category && details.Category.trim() !== "" && !categoryError) {
       drawText(ctx, "Category:", margin + 60, textY, 30, "gray", "light"); // Light font weight
-      const textWidth = ctx.measureText("Category:").width; // Measure the width of the text drawn
       drawTextMaxWidth(
         ctx,
         details.Category,
@@ -501,9 +503,8 @@ exports.generateBusinessCard = async (details) => {
         textY,
         30,
         700,
-        "black",
-        "normal"
-      ); // Bold font weight
+        "black"
+      );
       textY += lineHeight;
     }
 
@@ -515,16 +516,7 @@ exports.generateBusinessCard = async (details) => {
     // PhoneNo
     if (details.PhoneNo && details.PhoneNo.trim() !== "") {
       drawText(ctx, "Phone: ", margin + 60, textY, 30, "gray", "light"); // Light font weight
-      const textWidth = ctx.measureText("Phone: ").width; // Measure the width of the text drawn
-      drawText(
-        ctx,
-        details.PhoneNo,
-        margin + 235,
-        textY,
-        30,
-        "black",
-        "normal"
-      ); // Bold font weight
+      drawText(ctx, details.PhoneNo, margin + 235, textY, 30, "black");
       textY += lineHeight;
     }
 
@@ -536,7 +528,15 @@ exports.generateBusinessCard = async (details) => {
     // Email
     if (details.Email && details.Email.trim() !== "") {
       drawText(ctx, "Email: ", margin + 60, textY, 30, "gray", "light");
-      drawTextMaxWidth(ctx, details.Email, margin + 235, textY, 30,700, "black", "normal"); // Bold font weight
+      drawTextMaxWidth(
+        ctx,
+        details.Email,
+        margin + 235,
+        textY,
+        30,
+        700,
+        "black"
+      );
       textY += lineHeight;
     }
 
@@ -548,15 +548,7 @@ exports.generateBusinessCard = async (details) => {
     // WebsiteURL
     if (details.WebsiteURL && details.WebsiteURL.trim() !== "") {
       drawText(ctx, "Website: ", margin + 60, textY, 30, "gray", "light"); // Light font weight
-      drawText(
-        ctx,
-        details.WebsiteURL,
-        margin + 235,
-        textY,
-        30,
-        "black",
-        "normal"
-      ); // Bold font weight
+      drawText(ctx, details.WebsiteURL, margin + 235, textY, 30, "black");
       textY += lineHeight;
     }
 
@@ -573,10 +565,10 @@ exports.generateBusinessCard = async (details) => {
         details.Address,
         margin + 235,
         textY,
-        30,700,
-        "black",
-        "normal"
-      ); // Bold font weight
+        30,
+        700,
+        "black"
+      );
       textY += lineHeight;
     }
     //City
@@ -587,9 +579,14 @@ exports.generateBusinessCard = async (details) => {
     //State + pincode
     if (details.State && details.State.trim() !== "") {
       if (details.Pincode && details.Pincode.trim() !== "") {
-        drawText(ctx, `${details.State} - ${details.Pincode}`, margin + 235, textY, 30);
-      }
-      else{
+        drawText(
+          ctx,
+          `${details.State} - ${details.Pincode}`,
+          margin + 235,
+          textY,
+          30
+        );
+      } else {
         drawText(ctx, `${details.State}`, margin + 235, textY, 30);
       }
     }
@@ -612,7 +609,11 @@ exports.generateBusinessCard = async (details) => {
     }
 
     drawText(ctx, "Powered by Pintude", 50, height - 50, 30, "grey");
-    addWatermarks(ctx, details.BusinessName, width, height);
+    if (details.Watermark && details.Watermark.trim() !== "") {
+      addWatermarks(ctx, details.Watermark, width, height);
+    } else {
+      addWatermarks(ctx, "PinTude", width, height);
+    }
 
     return canvas.toBuffer("image/png");
   } catch (error) {
