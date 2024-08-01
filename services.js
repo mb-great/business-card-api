@@ -186,82 +186,86 @@ function shortenBusinessNameToFitCanvas(ctx, name, maxWidth) {
     "Wine Production",
     "Youth Development",
   ];
- // Basic patterns and terms to preserve
- const importantPatterns = [
-  /\b(ltd|limited|inc|corp|company|co|llc|plc|pvt|private)\b/i,
-  /\b(and|sons|bros)\b/i
-];
+  // Basic patterns and terms to preserve
+  const importantPatterns = [
+    /\b(ltd|limited|inc|corp|company|co|llc|plc|pvt|private)\b/i,
+    /\b(and|sons|bros)\b/i,
+  ];
 
-// Apply common replacements
-const replacements = [
-  { regex: /\band\b/gi, replacement: "&" },
-  { regex: /\bsons\b/gi, replacement: "Sons" },
-  { regex: /\bbrothers\b/gi, replacement: "Bros" },
-  { regex: /\bltd\b/gi, replacement: "Ltd." },
-  { regex: /\blimited\b/gi, replacement: "Ltd." }
-];
+  // Apply common replacements
+  const replacements = [
+    { regex: /\band\b/gi, replacement: "&" },
+    { regex: /\bsons\b/gi, replacement: "Sons" },
+    { regex: /\bbrothers\b/gi, replacement: "Bros" },
+    { regex: /\bltd\b/gi, replacement: "Ltd." },
+    { regex: /\blimited\b/gi, replacement: "Ltd." },
+  ];
 
-// Apply replacements
-replacements.forEach(({ regex, replacement }) => {
-  name = name.replace(regex, replacement);
-});
+  // Apply replacements
+  replacements.forEach(({ regex, replacement }) => {
+    name = name.replace(regex, replacement);
+  });
 
-// Split name into words
-let words = name.split(" ");
+  // Split name into words
+  let words = name.split(" ");
 
-// Capitalize the first letter of each word
-function capitalizeFirstLetter(word) {
-  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-}
+  // Capitalize the first letter of each word
+  function capitalizeFirstLetter(word) {
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  }
 
-// Function to check if a word is a business type
-function isBusinessType(word) {
-  return businessTypes.some(type => new RegExp(`\\b${type}\\b`, 'i').test(word));
-}
+  // Function to check if a word is a business type
+  function isBusinessType(word) {
+    return businessTypes.some((type) =>
+      new RegExp(`\\b${type}\\b`, "i").test(word)
+    );
+  }
 
-// Function to preserve important patterns
-function isImportant(word) {
-  return importantPatterns.some(pattern => pattern.test(word)) || isBusinessType(word);
-}
+  // Function to preserve important patterns
+  function isImportant(word) {
+    return (
+      importantPatterns.some((pattern) => pattern.test(word)) ||
+      isBusinessType(word)
+    );
+  }
 
-// Generate the abbreviated version of the name
-function getAbbreviatedName(words) {
-  return words
-    .map((word, index) => {
-      const lowerCaseWord = word.toLowerCase();
+  // Generate the abbreviated version of the name
+  function getAbbreviatedName(words) {
+    return words
+      .map((word, index) => {
+        const lowerCaseWord = word.toLowerCase();
 
-      // Preserve important keywords and last words
-      if (isImportant(lowerCaseWord) || index === words.length - 1) {
-        return capitalizeFirstLetter(word);
-      }
+        // Preserve important keywords and last words
+        if (isImportant(lowerCaseWord) || index === words.length - 1) {
+          return capitalizeFirstLetter(word);
+        }
 
-      // Abbreviate other words
-      return word.charAt(0).toUpperCase() + ".";
-    })
-    .join(" ");
-}
+        // Abbreviate other words
+        return word.charAt(0).toUpperCase() + ".";
+      })
+      .join(" ");
+  }
 
-// Check if the initial abbreviated name fits
-let abbreviatedName = getAbbreviatedName(words);
+  // Check if the initial abbreviated name fits
+  let abbreviatedName = getAbbreviatedName(words);
 
-if (ctx.measureText(abbreviatedName).width <= maxWidth) {
-  return abbreviatedName;
-}
-
-// If not, iteratively shorten the name from the end
-for (let i = words.length - 1; i >= 0; i--) {
-  words.splice(i, 1); // Remove a word
-  abbreviatedName = getAbbreviatedName(words) + "...";
-  
   if (ctx.measureText(abbreviatedName).width <= maxWidth) {
     return abbreviatedName;
   }
-}
 
-// Fallback: Return the shortest possible abbreviation with ellipsis
-return getAbbreviatedName(["..."]);
-}
+  // If not, iteratively shorten the name from the end
+  for (let i = words.length - 1; i >= 0; i--) {
+    words.splice(i, 1); // Remove a word
+    abbreviatedName = getAbbreviatedName(words) + "...";
 
+    if (ctx.measureText(abbreviatedName).width <= maxWidth) {
+      return abbreviatedName;
+    }
+  }
+
+  // Fallback: Return the shortest possible abbreviation with ellipsis
+  return getAbbreviatedName(["..."]);
+}
 
 function drawText(ctx, text, x, y, fontSize, color = "black", rotate = 0) {
   ctx.save();
@@ -321,6 +325,7 @@ exports.generateBusinessCard = async (details) => {
     const globeIconImg = await loadImage("./assets/globe.png");
     const locationPinDropImg = await loadImage("./assets/location.png");
     const phoneIconImg = await loadImage("./assets/phone.png");
+    const pintudeLogoImg = await loadImage("./assets/pintude.jpg");
 
     // Set background color
     ctx.fillStyle = "#ffffff";
@@ -439,7 +444,12 @@ exports.generateBusinessCard = async (details) => {
       console.log("City error:", cityError);
       console.log("Pin error:", pinError);
       console.log("Business error:", businessError);
-      drawTextMaxWidth(ctx, errorMessage, margin, height - 100, 25, 500, "red");
+      const error = new Error(
+        errorMessage
+      );
+      error.statusCode = 400;
+      error.additionalInfo = { errorMessage: errorMessage };
+      throw error;
     } else {
       console.log("All parameters are valid.");
     }
@@ -453,14 +463,23 @@ exports.generateBusinessCard = async (details) => {
       !businessError
     ) {
       const businessNameText = `${details.BusinessName}`.trim();
-      const maxWidth = 800;
+      const maxWidth = 950;
       shortenedName = shortenBusinessNameToFitCanvas(
         ctx,
         businessNameText,
         maxWidth
       );
-      if (ctx.measureText(businessNameText).width <= maxWidth) {
-        drawTextMaxWidth(ctx, businessNameText, margin, margin + 40, 70,maxWidth, "#333333");
+      
+      if (shortenedName === businessNameText) {
+        drawTextMaxWidth(
+          ctx,
+          businessNameText,
+          margin,
+          margin + 40,
+          70,
+          maxWidth,
+          "#333333"
+        );
       } else {
         drawTextMaxWidth(
           ctx,
@@ -586,11 +605,13 @@ exports.generateBusinessCard = async (details) => {
           textY,
           30
         );
+        textY += lineHeight;
       } else {
         drawText(ctx, `${details.State}`, margin + 235, textY, 30);
+        textY += lineHeight;
       }
     }
-    textY += lineHeight;
+    
 
     //Country
     if (details.Country && details.Country.trim() !== "") {
@@ -608,15 +629,12 @@ exports.generateBusinessCard = async (details) => {
       ctx.drawImage(qrImage, width - 250, height - 230, 200, 200);
     }
 
-    drawText(ctx, "Powered by Pintude", 50, height - 50, 30, "grey");
-    if (details.Watermark && details.Watermark.trim() !== "") {
-      addWatermarks(ctx, details.Watermark, width, height);
-    } else {
-      addWatermarks(ctx, "PinTude", width, height);
-    }
+    drawText(ctx, "Powered by", 50, height - 50, 30, "grey");
+    ctx.drawImage(pintudeLogoImg, 220, height - 115, 100, 100);
+    addWatermarks(ctx, "PinTude", width, height);
 
     return canvas.toBuffer("image/png");
   } catch (error) {
-    console.log(error);
+    throw Error(error);
   }
 };
