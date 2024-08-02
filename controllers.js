@@ -1,5 +1,4 @@
 const cardService = require("./services");
-const {JsonError} = require("./services");
 
 exports.getBusinessCard = async (req, res, next) => {
   try {
