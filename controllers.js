@@ -17,8 +17,6 @@ exports.getBusinessCard = async (req, res, next) => {
       State: details.State || "",
       Pincode: details.Pincode || "",
       Country: details.Country || "",
-      LogoURL: details.LogoURL || "",
-      Watermark: details.Watermark || "",
     };
 
     // Generate the business card image
